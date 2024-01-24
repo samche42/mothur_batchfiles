@@ -57,3 +57,11 @@ make.shared(list=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.un
 
 #Pull out OTUs!
 get.oturep(column=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.dist, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.abund.pick.count_table, list=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.opti_mcc.list, fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.fasta, sorted=group, cutoff=0.03)
+
+rename.file(input=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.opti_mcc.0.03.rep.count_table, new=Final_0.03.rep.count_table)
+
+rename.file(input=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.opti_mcc.0.03.rep.fasta, new=Final.0.03.rep.fasta)
+
+classify.seqs(fasta=Final.0.03.rep.fasta,count=Final_0.03.rep.count_table,reference=silva.nr_v138_1.align, taxonomy=silva.nr_v138_1.tax, cutoff=80)
+
+count.seqs(count=Final_0.03.rep.count_table, compress=f)
