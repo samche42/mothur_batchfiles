@@ -1,0 +1,59 @@
+#Have a look at the data - adjust screening accordingly
+summary.seqs(fasta=ABC.trim.contigs.fasta,count=ABC.trim.count_table, processors=16)
+
+#Clean up sequences (avg of 300 bp, remove anything beyond 50bp in either direction, anything with 7 or more homopolymers and any with ambiguous nucleotides)
+screen.seqs(fasta=ABC.trim.contigs.fasta, count=ABC.trim.count_table, maxambig=0, maxhomop=7, maxlength=350, minlength=250,processors=24)
+
+#Get just the unique seqs
+unique.seqs(fasta=ABC.trim.contigs.good.fasta, count=ABC.trim.good.count_table) 
+
+#Another quick look at the data
+summary.seqs(fasta=ABC.trim.contigs.good.unique.fasta, count=ABC.trim.contigs.good.count_table)
+
+#Remove any chimeric sequences
+chimera.vsearch(fasta=ABC.trim.contigs.good.unique.fasta, count=ABC.trim.contigs.good.count_table, dereplicate=t) 
+
+#Time to classify the sequences against the ref db
+classify.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.fasta, count=ABC.trim.contigs.good.denovo.vsearch.count_table,reference=silva.nr_v138_1.align, taxonomy=silva.nr_v138_1.tax, cutoff=80) 
+
+#Use that to remove the lineags you don't want
+remove.lineage(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.fasta, count=ABC.trim.contigs.good.denovo.vsearch.count_table, taxonomy=ABC.trim.contigs.good.unique.denovo.vsearch.nr_v138_1.wang.taxonomy,taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+
+#Align all our seqs
+align.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.fasta, reference=silva.nr_v138_1.align, flip=T)
+
+#Remove anything that falls outside of the majority of aligned sequences (95% of sequence must be in between optimized start and end coordinates)
+screen.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.align, count=ABC.trim.contigs.good.denovo.vsearch.pick.count_table, optimize=start-end, criteria=95)
+
+#Remove empty columns from alignment
+filter.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.align, vertical=T, trump=.)
+
+#Confirm that everything looks good
+summary.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.fasta, count=ABC.trim.contigs.good.denovo.vsearch.pick.good.count_table)
+
+#Get uniques to decrease computational cost
+unique.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.fasta, count=ABC.trim.contigs.good.denovo.vsearch.pick.good.count_table)
+
+#Double check all chimeras are gone
+chimera.vsearch(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.fasta, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.count_table, dereplicate=t)
+
+#Remove singletons
+split.abund(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.fasta, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.count_table, cutoff=1)
+
+#Classify remaining OTUs
+classify.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.fasta, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.abund.count_table,reference=silva.nr_v138_1.align, taxonomy=silva.nr_v138_1.tax, cutoff=80)
+
+#Remove any unwanted taxa
+remove.lineage(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.fasta, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.abund.count_table,taxonomy=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.nr_v138_1.wang.taxonomy, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+
+#Calculate distances between sequences
+dist.seqs(fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.fasta, cutoff=0.03)
+
+#Cluster sequences into OTUs using the opticlust approach: https://doi.org/10.1128/mspheredirect.00073-17
+cluster(column=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.dist, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.abund.pick.count_table, cutoff=0.03, method=opti)
+
+#Find which OTUS are shared between the different samples
+make.shared(list=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.opti_mcc.list, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.abund.pick.count_table)
+
+#Pull out OTUs!
+get.oturep(column=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.dist, count=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.denovo.vsearch.abund.pick.count_table, list=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.opti_mcc.list, fasta=ABC.trim.contigs.good.unique.denovo.vsearch.pick.good.filter.unique.denovo.vsearch.abund.pick.fasta, sorted=group, cutoff=0.03)
