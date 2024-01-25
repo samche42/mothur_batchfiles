@@ -21,7 +21,7 @@ for trim in trim_files:
         output.write(trim)
 
 #Merging fasta files
-output.write("merge.count(count=")
+output.write("merge.files(input=")
 string = ""
 fasta_files = [file for file in os.listdir(start_dir) if file.endswith(".fastq")]
 for fasta in fasta_files:
@@ -34,8 +34,8 @@ string = string[:-1]
 string = string +",output=ABC.trim.contigs.fasta)\n"
 output.write(string)
 
-#Merging group files
-output.write("merge.files(input=")
+#Merging count files
+output.write("merge.count(count=")
 string = ""
 fasta_files = [file for file in os.listdir(start_dir) if file.endswith(".fastq")]
 for fasta in fasta_files:
