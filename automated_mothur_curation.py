@@ -18,7 +18,9 @@ for trim in trim_files:
         fasta_create = "fastq.info(fastq="+file_name+".fastq)\n"
         output.write(fasta_create)
         trim = "trim.seqs(fasta="+file_name+".fasta, qfile="+file_name+".qual, qwindowaverage=20, minlength=250, processors=16)\n"
+        group = "make.group(fasta="+file_name+".trim.fasta, groups="+file_name+")\n"
         output.write(trim)
+        output.write(group)
 
 #Merging fasta files
 output.write("merge.files(input=")
